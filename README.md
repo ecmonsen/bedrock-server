@@ -1,5 +1,5 @@
 # Minecraft Bedrock Server
-Run a bedrock server in a Docker container.
+Run a bedrock server in a Docker container. 
 
 ## Introduction
 This Docker image will download the Bedrock Server app and set it up, along with its dependencies.
