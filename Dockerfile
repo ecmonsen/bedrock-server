@@ -20,6 +20,8 @@ RUN if [ "$VERSION" = "latest" ] ; then \
     fi && \
     curl https://minecraft.azureedge.net/bin-linux/bedrock-server-${VERSION}.zip --output bedrock-server.zip && \
     unzip bedrock-server.zip -d bedrock-server && \
+    rm -f /bedrock-server/bedrock_server_symbols.debug && \
+    chmod a+x /bedrock-server/bedrock_server && \
     rm bedrock-server.zip
 
 # Create a separate folder for configurations move the original files there and create links for the files
