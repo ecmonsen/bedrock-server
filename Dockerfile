@@ -13,7 +13,7 @@ RUN if [ "$VERSION" = "latest" ] ; then \
         LATEST_VERSION=$( \
             curl -v --silent -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:90.0) Gecko/20100101 Firefox/90.0" \
             https://www.minecraft.net/en-us/download/server/bedrock 2>&1 | \
-            grep -o 'https://minecraft.azureedge.net/bin-linux/[^"]*' | \
+            grep -o '/bedrockdedicatedserver/bin-linux/[^"]*' | \
             sed 's#.*/bedrock-server-##' | sed 's/.zip//') && \
         export VERSION=$LATEST_VERSION && \
         echo "Setting VERSION to $LATEST_VERSION" ; \
