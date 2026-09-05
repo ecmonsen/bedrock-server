@@ -2,22 +2,23 @@ FROM ubuntu:22.04
 
 # Install dependencies
 RUN apt-get update && \
-    apt-get install -y unzip curl libcurl4 libssl3 wget jq && \
+    apt-get install -y unzip libcurl4 libssl3 wget jq && \
     rm -rf /var/lib/apt/lists/*
 
 ARG BDS_Version=latest
 
 ENV VERSION=$BDS_Version
 
-# Construct the download URL and download the server file
+# Construct the download URL
 RUN if [ "$VERSION" = "latest" ]; then \
-        DOWNLOAD_URL=$(curl --silent -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:90.0) Gecko/20100101 Firefox/90.0" https://net-secondary.web.minecraft-services.net/api/v1.0/download/links | \
+        DOWNLOAD_URL=$(wget -q https://net-secondary.web.minecraft-services.net/api/v1.0/download/links -O - | \
         jq -r '.result.links[] | select(.downloadType == "serverBedrockLinux") | .downloadUrl'); \
     else \
         DOWNLOAD_URL="https://www.minecraft.net/bedrockdedicatedserver/bin-linux/bedrock-server-${VERSION}.zip"; \
     fi; \
     echo "DOWNLOAD_URL=$DOWNLOAD_URL" > /etc/docker_environment
 
+# Download and extract the server file
 RUN . /etc/docker_environment && \
     wget -q  "$DOWNLOAD_URL" -O bedrock-server.zip && \
     unzip -q bedrock-server.zip -d bedrock-server && \
