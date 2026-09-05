@@ -1,26 +1,27 @@
 FROM ubuntu:22.04
-ARG BDS_Version=1.20.31.01
-
-ENV VERSION=$BDS_Version
 
 # Install dependencies
 RUN apt-get update && \
-    apt-get install -y unzip curl libcurl4 libssl3 && \
+    apt-get install -y unzip libcurl4 libssl3 wget jq && \
     rm -rf /var/lib/apt/lists/*
 
-# Download and extract the bedrock server
-RUN if [ "$VERSION" = "latest" ] ; then \
-        LATEST_VERSION=$( \
-            curl -v --silent -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:90.0) Gecko/20100101 Firefox/90.0" \
-            https://www.minecraft.net/en-us/download/server/bedrock 2>&1 | \
-            grep -o '/bedrockdedicatedserver/bin-linux/[^"]*' | \
-            sed 's#.*/bedrock-server-##' | sed 's/.zip//') && \
-        export VERSION=$LATEST_VERSION && \
-        echo "Setting VERSION to $LATEST_VERSION" ; \
-    else echo "Using VERSION of $VERSION"; \
-    fi && \
-    curl -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:90.0) Gecko/20100101 Firefox/90.0" https://www.minecraft.net/bedrockdedicatedserver/bin-linux/bedrock-server-${VERSION}.zip --output bedrock-server.zip && \
-    unzip bedrock-server.zip -d bedrock-server && \
+ARG BDS_Version=latest
+
+ENV VERSION=$BDS_Version
+
+# Construct the download URL
+RUN if [ "$VERSION" = "latest" ]; then \
+        DOWNLOAD_URL=$(wget -q https://net-secondary.web.minecraft-services.net/api/v1.0/download/links -O - | \
+        jq -r '.result.links[] | select(.downloadType == "serverBedrockLinux") | .downloadUrl'); \
+    else \
+        DOWNLOAD_URL="https://www.minecraft.net/bedrockdedicatedserver/bin-linux/bedrock-server-${VERSION}.zip"; \
+    fi; \
+    echo "DOWNLOAD_URL=$DOWNLOAD_URL" > /etc/docker_environment
+
+# Download and extract the server file
+RUN . /etc/docker_environment && \
+    wget -q  "$DOWNLOAD_URL" -O bedrock-server.zip && \
+    unzip -q bedrock-server.zip -d bedrock-server && \
     rm -f /bedrock-server/bedrock_server_symbols.debug && \
     chmod a+x /bedrock-server/bedrock_server && \
     rm bedrock-server.zip
